@@ -1,6 +1,6 @@
 import "./App.css";
 import { BsPause, BsPlay } from "react-icons/bs";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TextToSpeech } from "./textToSpeech";
 
 const tts = new TextToSpeech();
@@ -14,15 +14,31 @@ function App() {
   const [text, setText] = useState("");
   const [lastUsed, setLastUsed] = useState([]);
 
+  useEffect(() => {
+    setLastUsed(JSON.parse(localStorage.getItem("lastUsed")) || []);
+  }, []);
+
   const handlePlay = () => {
     tts.end(setPlay);
+    // pause
+    if (speechSynthesis.speaking) {
+      tts.pause();
+      setPlay(false);
+    }
+    if (speechSynthesis.paused) {
+      tts.continue();
+      setPlay(true);
+    }
+
+    // play
     if (text) {
       setPlay(true);
 
       tts.speak(text);
       setLastUsed([...lastUsed, text]);
-      setText("");
+      localStorage.setItem("lastUsed", JSON.stringify([...lastUsed, text]));
       textRef.current.focus();
+      setText("");
     }
   };
 
@@ -31,6 +47,7 @@ function App() {
       <h1>TEXT TO SPEECH</h1>
 
       <textarea
+        style={{ resize: "none" }}
         id=""
         cols="30"
         rows="10"
@@ -50,9 +67,25 @@ function App() {
           {play ? <BsPause /> : <BsPlay />}
         </div>
       </div>
-      <ul>
+      {lastUsed.length !== 0 && <h3>RECENTLY</h3>}
+      <ul
+        style={{
+          listStyle: "none",
+          padding: 0,
+          display: "flex",
+          flexDirection: "column-reverse",
+        }}
+      >
         {lastUsed.map((value, index) => {
-          return <li key={index}>{value}</li>;
+          return (
+            <li
+              style={{ cursor: "pointer" }}
+              key={index}
+              onClick={() => setText(value)}
+            >
+              {value}
+            </li>
+          );
         })}
       </ul>
     </div>

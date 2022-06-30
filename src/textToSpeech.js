@@ -12,8 +12,14 @@ export class TextToSpeech {
     speechSynthesis.speak(this.speech);
   }
   end(setPlay) {
-    return (this.speech.onend = (e) => {
+    return (this.speech.onend = () => {
       setPlay(false);
     });
+  }
+  pause() {
+    speechSynthesis.pause();
+  }
+  continue() {
+    speechSynthesis.resume();
   }
 }
